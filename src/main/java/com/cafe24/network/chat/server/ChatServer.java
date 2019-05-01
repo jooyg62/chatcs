@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.cafe24.network.chat.util.NetUtil;
+
 public class ChatServer {
 	
 	private static final int 	PORT = 	7000; 
@@ -24,11 +26,12 @@ public class ChatServer {
 			
 			//2. 바인딩(binding)
 			ss.bind(new InetSocketAddress("0.0.0.0", PORT)); //"0.0.0.0" 이였다가 클라이언트가 찌를 때 ip가 바뀐다.
-			log("Server starts...[port:" + PORT + "]");
+			NetUtil.svrlog("Server starts...[port:" + PORT + "]");
 			
 			while(true) {
 				//3. accept
 				Socket socket 					= ss.accept(); //blocking
+				NetUtil.svrlog("Accept client!");
 				
 				Thread thread = new ChatServerReceiveThread(socket, pwList);
 				thread.start();
@@ -46,10 +49,5 @@ public class ChatServer {
 			}
 		}
 	}
-
-	public static void log(String log) {
-		System.out.println("[server#"+ Thread.currentThread().getId() + "] " + log);
-	}
-
 
 }

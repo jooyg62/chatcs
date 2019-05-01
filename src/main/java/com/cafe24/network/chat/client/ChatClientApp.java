@@ -4,9 +4,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Scanner;
 
+import com.cafe24.network.chat.util.NetUtil;
+
 public class ChatClientApp {
 	
-	private static final String SERVER_IP 	= 	"192.168.1.9"; 
+	private static final String SERVER_IP 	= 	"192.168.1.9";
 	private static final int 	SERVER_PORT = 	7000; 
 
 	public static void main(String[] args) {
@@ -15,15 +17,15 @@ public class ChatClientApp {
 		
 		while( true ) {
 			
-			System.out.println("대화명을 입력하세요.");
-			System.out.print(">>> ");
+			NetUtil.cntlog("대화명을 입력하세요.");
+			NetUtil.cntlog(">>> ");
 			name = scanner.nextLine();
 			
 			if (name.isEmpty() == false ) {
 				break;
 			}
 			
-			System.out.println("대화명은 한글자 이상 입력해야 합니다.\n");
+			NetUtil.cntlog("대화명은 한글자 이상 입력해야 합니다.\n");
 		}
 		
 		Socket socket = null;
@@ -33,7 +35,7 @@ public class ChatClientApp {
 			//1. 소켓 만들고
 			socket = new Socket();
 			socket.connect(new InetSocketAddress(SERVER_IP, SERVER_PORT));
-			log("connected");
+			NetUtil.cntlog("connected");
 		
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -46,8 +48,4 @@ public class ChatClientApp {
 		new ChatWindow(name, socket).show();
 	}
 	
-	public static void log(String log) {
-		System.out.println("[client] " + log);
-	}
-
 }

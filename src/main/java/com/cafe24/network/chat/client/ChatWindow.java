@@ -20,9 +20,9 @@ import java.net.Socket;
 import com.cafe24.network.chat.util.NetUtil;
 
 /**
- * 프로토콜 정의
+ * 패킷 정의
  * |--------------------------------------|
- * | BASE64 : 첫접속(1/0) 이름 내용
+ * | 첫접속(0/1/2):이름:내용
  * |______________________________________|
  *
  */
@@ -52,7 +52,12 @@ public class ChatWindow {
 		
 		try {
 			this.pw = new PrintWriter( new OutputStreamWriter(socket.getOutputStream(), "utf-8"), true);
-			pw.println("1"+NetUtil.PROTOCOL_DIV+ name +NetUtil.PROTOCOL_DIV+ "connect"); //첫 접속 메세지를 보냄
+			
+			//첫 접속 메세지를 보냄
+			String[] joinPacket = NetUtil.makePacket(NetUtil.PTC_DIV_JOIN, name, name+"님이 입장 하였습니다");
+			String packetString = String.join(NetUtil.PROTOCOL_DIV, joinPacket);
+			pw.println(packetString); 
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -125,30 +130,28 @@ public class ChatWindow {
 	private void sendMessage() {
 		String message = textField.getText();
 		
-		// 프로토콜 만들기
-		String[] strArr = new String[NetUtil.PTC_DIV_SIZE-1];
-		strArr[0] = "0";
-		strArr[1] = nickName;
-		strArr[2] = message;
+		String ptc_div = " ";
 		
-		if("quit".equals(strArr[2])) {
-			//나가기
+		if(NetUtil.PTC_QUIT.equals(message)) {
+			// 나가기 div
+			ptc_div = NetUtil.PTC_DIV_QUIT;
+		} else {
+			// 일반 div
+			ptc_div = NetUtil.PTC_DIV_BASIC;
+		}
+		
+		if(NetUtil.PTC_DIV_QUIT.equals(ptc_div)) {
+			//나가기: 프로세스 종료
 			System.exit(0);
 		}
 		
-		String data = String.join(NetUtil.PROTOCOL_DIV, strArr);
+		String[] packet = NetUtil.makePacket(ptc_div, nickName, message);			
+		String packetString = String.join(NetUtil.PROTOCOL_DIV, packet);
 		
-		System.out.println("client: send: " + data);
-				
-		pw.println(data); // PrintWriter : 서버에 전달할 프로토콜 정의해서 작성하기
+		pw.println(packetString);
 		
 		textField.setText("");
 		textField.requestFocus();
 		
-		
-	}
-	
-	public static void log(String log) {
-		System.out.println("[server] " + log);
 	}
 }

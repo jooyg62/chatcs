@@ -38,38 +38,34 @@ public class ChatServerReceiveThread extends Thread {
 				String data = br.readLine();
 				
 				if(data == null) {
-					ChatServer.log("closed by client");
+					//정상 종료
+					NetUtil.svrlog("closed by client");
 					break;
 				}
 				
+				//서버에서 받은 패킷
+				NetUtil.svrlog("packet received: " + data);
 				
+				String[] packet = data.split(NetUtil.PROTOCOL_DIV);
 				
-				System.out.println("[server] received msg: " + data);
+				if(NetUtil.PTC_DIV_JOIN.equals(packet[0])) {
+					//첫 접속일 경우
+					doJoin(packet[1], pw);
+					continue;
+				}
 				
-				String[] tokens = data.split(NetUtil.PROTOCOL_DIV);
-				
-				if("quit".equals(tokens[tokens.length-1])) {
+				if(NetUtil.PTC_DIV_QUIT.equals(packet[0])) {
+					//나가기
 					doQuit(pw);
 					continue;
 				}
-				
-				if("1".equals(tokens[0])) {
-					//첫 접속일 경우
-					doJoin(tokens[1], pw);
-					continue;
-				}
-				/*
-				 * ChatServer.log("received: "); for(String token : tokens ) {
-				 * ChatServer.log(token); }
-				 * 
-				 */				
+		
 				//6. 데이터 쓰기
-				doMessage(tokens[2]); //개행이 자동으로 붙어서 감.
-				
+				doMessage(packet[2]); //개행이 자동으로 붙어서 감.
 			}
 		
 		} catch(SocketException e) {
-			ChatServer.log("sudden closed by client");
+			NetUtil.svrlog("sudden closed by client");
 			doQuit(pw);
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -88,7 +84,7 @@ public class ChatServerReceiveThread extends Thread {
 	private void doJoin( String nickName, Writer writer ) {
 		this.nickName = nickName;
 		
-		String data = nickName + "님이참여하였습니다.";
+		String data = nickName + "님이 입장 하였습니다";
 		broadcast( data );
 		
 		/* writer pool에 저장*/
@@ -110,19 +106,16 @@ public class ChatServerReceiveThread extends Thread {
 	}
 	
 	private void doMessage( String message ) {
-		// 프로토콜 만들기
-		String[] strArr = new String[NetUtil.PTC_DIV_SIZE-1];
-		strArr[0] = "0";
-		strArr[1] = nickName;
-		strArr[2] = message;
+		// 패킷 생성
+		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_BASIC, nickName, message);
 		
-		String data = String.join(NetUtil.PROTOCOL_DIV, strArr);
+		String packetString = String.join(NetUtil.PROTOCOL_DIV, packet);
 		
 		synchronized( pwList ) {
 			
 			for(Writer writer : pwList ) {
 				PrintWriter printWriter = (PrintWriter) writer;
-				printWriter.println( data );
+				printWriter.println( packetString );
 				printWriter.flush();
 			}
 		}
@@ -130,32 +123,30 @@ public class ChatServerReceiveThread extends Thread {
 	}
 	
 	private void broadcast( String message ) {
+		// 패킷 생성
+		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_BASIC, nickName, message);
 		
-		// 프로토콜 만들기
-				String[] strArr = new String[NetUtil.PTC_DIV_SIZE-1];
-				strArr[0] = "0";
-				strArr[1] = nickName;
-				strArr[2] = message;
+		String packetString = String.join(NetUtil.PROTOCOL_DIV, packet);
 				
-				String data = String.join(NetUtil.PROTOCOL_DIV, strArr);
-		
 		synchronized( pwList ) {
 			
 			for(Writer writer : pwList ) {
 				PrintWriter printWriter = (PrintWriter) writer;
-				printWriter.println( data );
+				printWriter.println( packetString );
 				printWriter.flush();
 			}
 		}
 	}
 	
+	//유저 나가기
 	private void doQuit( Writer writer ) {
 		removeWriter( writer );
 		
-		String data = nickName + "님이퇴장하였습니다.";
+		String data = nickName + "님이 퇴장하였습니다.";
 		broadcast( data );
 	}
 	
+	//PrintWriter 제거
 	private void removeWriter( Writer writer ) {
 		for(int i=0; i < pwList.size(); i++) {
 			if(pwList.get(i) == writer) {

@@ -29,11 +29,12 @@ public class ChatWindowReceiveThread extends Thread {
 				//5. 데이터 읽기
 				String data = br.readLine();
 				if(data == null) {
-					ChatWindow.log("closed by client");
+					//정상 종료
+					NetUtil.cntlog("closed by client");
 					break;
 				}
 				
-				System.out.println("[client]" + data);
+				NetUtil.cntlog("packet received: " + data);
 				
  				if("join:ok".equals(data)) {
 					continue;
@@ -48,7 +49,7 @@ public class ChatWindowReceiveThread extends Thread {
 			}
 		
 		} catch(SocketException e) {
-			ChatWindow.log("sudden closed by client");
+			NetUtil.cntlog("sudden closed by client");
 		} catch(IOException e) {
 			e.printStackTrace();
 		} finally {
