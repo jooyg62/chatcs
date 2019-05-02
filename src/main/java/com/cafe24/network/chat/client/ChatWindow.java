@@ -54,7 +54,7 @@ public class ChatWindow {
 			this.pw = new PrintWriter( new OutputStreamWriter(socket.getOutputStream(), "utf-8"), true);
 			
 			//첫 접속 메세지를 보냄
-			String[] joinPacket = NetUtil.makePacket(NetUtil.PTC_DIV_JOIN, name, name+"님이 입장 하였습니다");
+			String[] joinPacket = NetUtil.makePacket(NetUtil.PTC_DIV_JOIN, name, NetUtil.base64Encoding(name+"님이 입장 하였습니다"));
 			String packetString = String.join(NetUtil.PROTOCOL_DIV, joinPacket);
 			pw.println(packetString); 
 			
@@ -130,6 +130,10 @@ public class ChatWindow {
 	private void sendMessage() {
 		String message = textField.getText();
 		
+		if("".equals(message)) {
+			return;
+		}
+		
 		String ptc_div = " ";
 		
 		if(NetUtil.PTC_QUIT.equals(message)) {
@@ -145,7 +149,7 @@ public class ChatWindow {
 			System.exit(0);
 		}
 		
-		String[] packet = NetUtil.makePacket(ptc_div, nickName, message);			
+		String[] packet = NetUtil.makePacket(ptc_div, nickName, NetUtil.base64Encoding(message));			
 		String packetString = String.join(NetUtil.PROTOCOL_DIV, packet);
 		
 		pw.println(packetString);

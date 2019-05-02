@@ -37,14 +37,16 @@ public class ChatServerReceiveThread extends Thread {
 				//5. 데이터 읽기
 				String data = br.readLine();
 				
+				//서버에서 받은 패킷
+				NetUtil.svrlog("packet received: " + data);
+				
 				if(data == null) {
 					//정상 종료
 					NetUtil.svrlog("closed by client");
+					//나가기
+					doQuit(pw);
 					break;
 				}
-				
-				//서버에서 받은 패킷
-				NetUtil.svrlog("packet received: " + data);
 				
 				String[] packet = data.split(NetUtil.PROTOCOL_DIV);
 				
@@ -61,7 +63,7 @@ public class ChatServerReceiveThread extends Thread {
 				}
 		
 				//6. 데이터 쓰기
-				doMessage(packet[2]); //개행이 자동으로 붙어서 감.
+				doMessage(NetUtil.base64Decoding(packet[2])); //개행이 자동으로 붙어서 감.
 			}
 		
 		} catch(SocketException e) {
@@ -107,7 +109,7 @@ public class ChatServerReceiveThread extends Thread {
 	
 	private void doMessage( String message ) {
 		// 패킷 생성
-		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_BASIC, nickName, message);
+		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_BASIC, nickName, NetUtil.base64Encoding(message));
 		
 		String packetString = String.join(NetUtil.PROTOCOL_DIV, packet);
 		
@@ -124,7 +126,7 @@ public class ChatServerReceiveThread extends Thread {
 	
 	private void broadcast( String message ) {
 		// 패킷 생성
-		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_BASIC, nickName, message);
+		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_BASIC, nickName, NetUtil.base64Encoding(message));
 		
 		String packetString = String.join(NetUtil.PROTOCOL_DIV, packet);
 				

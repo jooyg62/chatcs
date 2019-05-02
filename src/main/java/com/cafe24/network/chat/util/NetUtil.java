@@ -1,5 +1,10 @@
 package com.cafe24.network.chat.util;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
+
 /**
  * 프로토콜 정의 및
  * 유틸 내용 작성
@@ -70,5 +75,47 @@ public class NetUtil {
 		packet[2] = content;
 		
 		return packet;
+	}
+	
+	/**
+	 * 문자를 받아
+	 * base64로 인코딩된 문자열을 리턴한다.
+	 * @param str
+	 * @return base64로 인코딩된 문자열 리턴
+	 */
+	public static String base64Encoding(String str) {
+		String encodeToString = "";
+		
+		try {
+			byte[] strBytes = str.getBytes("utf-8");
+		
+			Encoder encoder = Base64.getEncoder();
+			encodeToString = encoder.encodeToString(strBytes);
+		
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		return encodeToString;
+	}
+	
+	/**
+	 * base64로 인코딩된 문자열을 받아
+	 * 디코드를 하여 리턴한다.
+	 * @param encStr base64로 인코딩된 문자열
+	 * @return 디코드 된 문자열 리턴
+	 */
+	public static String base64Decoding(String encStr) {
+		String resultStr = "";
+		
+		try {
+			Decoder decoder = Base64.getDecoder();
+			byte[] strBytes = decoder.decode(encStr);
+			resultStr = new String(strBytes, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		return resultStr;
 	}
 }
