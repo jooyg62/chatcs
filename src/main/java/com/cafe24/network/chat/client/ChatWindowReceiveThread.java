@@ -43,7 +43,9 @@ public class ChatWindowReceiveThread extends Thread {
 				String[] tokens = data.split(NetUtil.PROTOCOL_DIV);
 				
 				//6. 데이터 쓰기
-				String message = "[" + tokens[tokens.length-2] + "] " + NetUtil.base64Decoding(tokens[tokens.length-1]);
+				String message = 
+							"[" + tokens[tokens.length-2] + "] "
+							+ NetUtil.base64Decoding(tokens[tokens.length-1]);
 				textArea.append( message);
 				textArea.append("\n");
 			}
