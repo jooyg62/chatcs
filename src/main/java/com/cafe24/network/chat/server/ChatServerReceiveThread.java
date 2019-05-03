@@ -50,20 +50,24 @@ public class ChatServerReceiveThread extends Thread {
 				
 				String[] packet = data.split(NetUtil.PROTOCOL_DIV);
 				
+				String content = NetUtil.base64Decoding(packet[2]);
+				
 				if(NetUtil.PTC_DIV_JOIN.equals(packet[0])) {
 					//첫 접속일 경우
 					doJoin(packet[1], pw);
 					continue;
-				}
-				
-				if(NetUtil.PTC_DIV_QUIT.equals(packet[0])) {
+				} else if(NetUtil.PTC_DIV_QUIT.equals(packet[0])) {
 					//나가기
 					doQuit(pw);
 					continue;
+				} else if(NetUtil.PTC_DIV_WHISPER.equals(packet[0])) {
+					//나가기
+					doWhisper(content);
+					continue;
 				}
-		
+				
 				//6. 데이터 쓰기
-				doMessage(NetUtil.base64Decoding(packet[2])); //개행이 자동으로 붙어서 감.
+				doMessage(content); //개행이 자동으로 붙어서 감.
 			}
 		
 		} catch(SocketException e) {
@@ -124,6 +128,23 @@ public class ChatServerReceiveThread extends Thread {
 		
 	}
 	
+	private void doWhisper( String message ) {
+		// 패킷 생성
+		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_WHISPER, nickName, NetUtil.base64Encoding(message));
+		
+		String packetString = String.join(NetUtil.PROTOCOL_DIV, packet);
+		
+		synchronized( pwList ) {
+			
+			for(Writer writer : pwList ) {
+				PrintWriter printWriter = (PrintWriter) writer;
+				printWriter.println( packetString );
+				printWriter.flush();
+			}
+		}
+		
+	}
+	
 	private void broadcast( String message ) {
 		// 패킷 생성
 		String[] packet = NetUtil.makePacket(NetUtil.PTC_DIV_BASIC, nickName, NetUtil.base64Encoding(message));
@@ -157,5 +178,5 @@ public class ChatServerReceiveThread extends Thread {
 			}
 		}
 	}
-
+	
 }

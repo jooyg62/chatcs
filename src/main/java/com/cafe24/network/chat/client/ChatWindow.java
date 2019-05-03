@@ -123,7 +123,7 @@ public class ChatWindow {
 		frame.pack();
 		
 		//thread 생성
-		ChatWindowReceiveThread chatWindowReceiveThread = new ChatWindowReceiveThread(socket, textArea);
+		ChatWindowReceiveThread chatWindowReceiveThread = new ChatWindowReceiveThread(socket, textArea, this.nickName);
 		chatWindowReceiveThread.start();
 	}
 	
@@ -139,10 +139,18 @@ public class ChatWindow {
 		if(NetUtil.PTC_QUIT.equals(message)) {
 			// 나가기 div
 			ptc_div = NetUtil.PTC_DIV_QUIT;
+		} else if(isWhisper(message)) {
+			//귓속말
+			ptc_div = NetUtil.PTC_DIV_WHISPER;
+			
+			String[] splits = message.split(" ");
+			
+			message = whisperMsgFormat(splits);
+			
 		} else {
 			// 일반 div
 			ptc_div = NetUtil.PTC_DIV_BASIC;
-		}
+		} 
 		
 		if(NetUtil.PTC_DIV_QUIT.equals(ptc_div)) {
 			//나가기: 프로세스 종료
@@ -158,4 +166,36 @@ public class ChatWindow {
 		textField.requestFocus();
 		
 	}
+	
+	public boolean isWhisper(String message) {
+		boolean result = false;
+		
+		String[] tokens = message.split(" ");
+		
+		if("/w".equals(tokens[0]) && tokens.length >= 3) {
+			result = true;
+		}
+		
+		return result;
+	}
+	
+	public String whisperMsgFormat(String... str) {
+		String one = str[0];
+		String two = str[1];
+		StringBuffer threeBuffer = new StringBuffer();
+		
+		String result = "";
+		
+		for(int i=0; i< str.length; i++) {
+			if(!(i==0 || i==1)) {
+				threeBuffer.append(str[i]);
+				threeBuffer.append(" ");				
+			}
+		}
+		
+		result = one + " " + two + " " + NetUtil.base64Encoding(threeBuffer.toString());
+		
+		return result;
+	}
+	
 }

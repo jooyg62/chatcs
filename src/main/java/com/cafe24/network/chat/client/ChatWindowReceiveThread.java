@@ -14,9 +14,12 @@ public class ChatWindowReceiveThread extends Thread {
 	
 	private TextArea textArea;
 	
-	public ChatWindowReceiveThread(Socket socket, TextArea textArea) {
+	private String nickName;
+	
+	public ChatWindowReceiveThread(Socket socket, TextArea textArea, String nickName) {
 		this.socket = socket;
 		this.textArea = textArea;
+		this.nickName = nickName;
 	}
 	
 	@Override
@@ -36,16 +39,34 @@ public class ChatWindowReceiveThread extends Thread {
 				
 				NetUtil.cntlog("packet received: " + data);
 				
- 				if("join:ok".equals(data)) {
+				if("join:ok".equals(data)) {
 					continue;
 				}
 				
-				String[] tokens = data.split(NetUtil.PROTOCOL_DIV);
+				String[] packet = data.split(NetUtil.PROTOCOL_DIV);
+				String msgDiv 	= packet[0];
+				String sndUser 	= packet[1];
+				String contents = NetUtil.base64Decoding(packet[2]);
 				
+				String message = "";
+					
 				//6. 데이터 쓰기
-				String message = 
-							"[" + tokens[tokens.length-2] + "] "
-							+ NetUtil.base64Decoding(tokens[tokens.length-1]);
+ 				if(NetUtil.PTC_DIV_WHISPER.equals(msgDiv)) {	//귓속말이라면..
+ 					NetUtil.cntlog("whisper rcv, contents: " + contents);
+					String[] tokens = contents.split(" ");
+					String rcvUser = tokens[1];
+					String rcvContent = NetUtil.base64Decoding(tokens[2]);
+					
+					if(this.nickName.equals(rcvUser)) {
+						//나한테 보낸 귓속말이라면..
+						message = sndUser + "님께서 보낸 귓속말: " + rcvContent;
+					} else {
+						continue;
+					}
+				} else {
+					message = "[" + sndUser + "] "+ contents;					
+				}
+				
 				textArea.append( message);
 				textArea.append("\n");
 			}

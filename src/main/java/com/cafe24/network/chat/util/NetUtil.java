@@ -30,10 +30,12 @@ public class NetUtil {
 	 * |	0: 일반 메시지
 	 * |	1: 최초 채팅방 입장
 	 * |	2: 나가기
+	 * |	3: 귓속말(/w [유저명] [귓속말 내용])
 	 */
 	public static final String PTC_DIV_BASIC 	= "0";
 	public static final String PTC_DIV_JOIN 	= "1";
 	public static final String PTC_DIV_QUIT 	= "2";
+	public static final String PTC_DIV_WHISPER 	= "3";
 	
 	/**
 	 * 채팅방 나가기 : quit
@@ -63,6 +65,7 @@ public class NetUtil {
 	 * |	0: 일반 메시지
 	 * |	1: 최초 채팅방 입장
 	 * |	2: 나가기
+	 * |	3: 귓속말
 	 * |
 	 * @param nickName	유저 네임
 	 * @param content	메시지 내용
@@ -118,4 +121,5 @@ public class NetUtil {
 		
 		return resultStr;
 	}
+	
 }
